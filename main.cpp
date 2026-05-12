@@ -11,16 +11,18 @@ double hit_sphere(const point3& center, const double radius, const ray& ray) {
     // abc are all derived here from the quadratic dot product expansion of the definition of a sphere defined using
     // our vectors. The variables have little semantic value alone, but as a whole the discriminant lets us know
     // whether we're inside or outside a sphere
-    const auto a = dot(ray.direction(), ray.direction());
-    const auto b = -2.0 * dot(ray.direction(), C_minus_Q);
-    const auto c = dot(C_minus_Q, C_minus_Q) - radius * radius;
-    const auto discriminant = b * b - 4 * a * c;
+
+    // now we are simplifying these by letting b = -2h, then solving out for h instead
+    const auto a = ray.direction().length_squared();  // remember vector dot itself is magnitude squared
+    const auto h = dot(ray.direction(), C_minus_Q);
+    const auto c = C_minus_Q.length_squared() - radius * radius;
+    const auto discriminant = h * h - a * c;
 
     // if discriminant < 0, no solutions, == 0 on the sphere, > 0, inside the sphere
     if (discriminant < 0) {
         return -1.0;
     } else {
-        return (-b - std::sqrt(discriminant)) / (2.0 * a);  // returns the solution
+        return (h - std::sqrt(discriminant)) / a;  // returns the solution
     }
 }
 
