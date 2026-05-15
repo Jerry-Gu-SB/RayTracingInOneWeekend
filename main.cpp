@@ -22,7 +22,7 @@ double hit_sphere(const point3& center, const double radius, const ray& ray) {
     if (discriminant < 0) {
         return -1.0;
     } else {
-        return (h - std::sqrt(discriminant)) / a;  // returns the solution
+        return (h - std::sqrt(discriminant)) / a;  // returns the solution, only one solution, as we only give the negative answer
     }
 }
 
