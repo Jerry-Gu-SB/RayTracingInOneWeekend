@@ -8,4 +8,6 @@ add_executable(RayTracingInOneWeekend main.cpp
         color.h
         ray.h
         hittable.h
-        sphere.h)
+        sphere.h
+        rtweekend.h
+        hittable_list.h)
