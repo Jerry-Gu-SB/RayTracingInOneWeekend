@@ -6,10 +6,6 @@
 #define RAYTRACINGINONEWEEKEND_VEC3_H
 
 
-
-#include <cmath>
-#include <iostream>
-
 class vec3 {
   public:
     double e[3];

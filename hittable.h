@@ -5,8 +5,6 @@
 #ifndef RAYTRACINGINONEWEEKEND_HITTABLE_H
 #define RAYTRACINGINONEWEEKEND_HITTABLE_H
 
-#include "ray.h"
-
 class hit_record {
     public:
         point3 point;

@@ -1,49 +1,19 @@
 ﻿// Implementation of https://raytracing.github.io/books/RayTracingInOneWeekend.html
 
-#include <iostream>
-#include "vec3.h"
-#include "color.h"
-#include "ray.h"
+#include "rtweekend.h"
 
-double hit_sphere(const point3& center, const double radius, const ray& ray) {
-    const vec3 C_minus_Q = center - ray.origin();  // center, as in center of the SPHERE, C
+#include "hittable.h"
+#include "hittable_list.h"
+#include "sphere.h"
 
-    // abc are all derived here from the quadratic dot product expansion of the definition of a sphere defined using
-    // our vectors. The variables have little semantic value alone, but as a whole the discriminant lets us know
-    // whether we're inside or outside a sphere
 
-    // now we are simplifying these by letting b = -2h, then solving out for h instead
-    const auto a = ray.direction().length_squared();  // remember vector dot itself is magnitude squared
-    const auto h = dot(ray.direction(), C_minus_Q);
-    const auto c = C_minus_Q.length_squared() - radius * radius;
-    const auto discriminant = h * h - a * c;
+color ray_color(const ray& ray, const hittable& world) {
+    hit_record rec;
 
-    // if discriminant < 0, no solutions, == 0 on the sphere, > 0, inside the sphere
-    if (discriminant < 0) {
-        return -1.0;
-    } else {
-        return (h - std::sqrt(discriminant)) / a;  // returns the solution, only one solution, as we only give the negative answer
+    if (world.hit(ray, 0, infinity, rec)) {
+        return .5 * (rec.normal + color(1, 1, 1));
     }
-}
 
-
-color ray_color(const ray& ray) {
-    // remember t is the point on the ray  P(t) = A + tb
-    auto t = hit_sphere(point3(0, 0, -1), 0.5, ray);
-
-    // so the ray here, is from the camera to the plane, and if imagine there's a sphere existing as we've defined
-    // above, if we've hit the edge of the sphere, then t == 0, if it's greater than we're inside as t is now hitting
-    // 2 points inside the sphere, and if it's less than zero, then we're outside the sphere.
-    if (t > 0.0) {
-        vec3 N = unit_vector(ray.at(t) - vec3(0, 0, -1));
-
-        // +1: why +1 and * 0.5? Remember that unit vectors can go from [-1, 1] in each component.
-        // So if we have -1 in the x component, we get +1 and zeroed out to no Red
-        // if we have 1 in the x component, we get 2, and then get normalized down by the .5, as write_color() only
-        // works on values between [0, 1] as it normalizes them to [0, 255]. see color.h. Note that color is just an
-        // alias for vec3 as well.
-        return 0.5 * color ( N.x() + 1, N.y() + 1, N.z() + 1);
-    }
     const vec3 unit_direction = unit_vector(ray.direction());
     const auto a = .5 * (unit_direction.y() + 1.0);
     return (1.0 - a) * color(1.0, 1.0, 1.0) + a * color(0.5, 0.7, 1.0);
@@ -60,6 +30,11 @@ int main() {
     int image_height = int(image_width / aspect_ratio);
     image_height = (image_height < 1) ? 1 : image_height;  // < 1 check
 
+    // World
+    hittable_list world;
+
+    world.add(make_shared<sphere>(point3(0, 0, -1), 0.5));
+    world.add(make_shared<sphere>(point3(0, -100.5, -1), 100));
 
     // Camera
     const auto focal_length = 1.0;  // distance between camera center, and the 2d plane of the viewport
@@ -95,7 +70,7 @@ int main() {
             // that's what this ray is doing.
             ray r(camera_center, ray_direction);
 
-            color pixel_color = ray_color(r);
+            color pixel_color = ray_color(r, world);
             write_color(std::cout, pixel_color);
         }
     }
