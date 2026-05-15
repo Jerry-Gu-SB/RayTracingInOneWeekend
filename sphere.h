@@ -43,7 +43,8 @@ class sphere: public hittable {
             hit_record.t = root;
             hit_record.point = ray.at(hit_record.t);
             // magnitude from root to center will always be radius, so divide to get unit vector
-            hit_record.normal = (hit_record.point - center) / radius;
+            vec3 outward_normal = (hit_record.point - center) / radius;
+            hit_record.set_face_normal(ray, outward_normal);
 
             return true;
         }

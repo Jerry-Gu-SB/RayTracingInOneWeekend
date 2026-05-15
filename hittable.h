@@ -12,6 +12,21 @@ class hit_record {
         point3 point;
         vec3 normal;
         double t;
+        bool outward_face;
+
+        // Sets hit record normal vector, always out
+        // NOTE: outward_normal is assumed to have unit length
+        // we could add a function to normalize outward_normal
+        // but it's more convenient and efficient if the geometry code
+        // does this instead
+        void set_face_normal(const ray& ray, const vec3& outward_normal) {
+
+            // If the ray is inside surface, then outward normal is pointing out in the
+            // same sort of direction, so dot is positive. Otherwise the outward normal
+            // is always against the ray coming from the outside, therefore dot is negative.
+            outward_face = dot(ray.direction(), outward_normal) < 0;
+            normal = outward_face ? outward_normal : -outward_normal;
+        }
 };
 
 class hittable {
