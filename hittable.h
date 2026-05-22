@@ -39,7 +39,7 @@ class hittable {
 
         virtual ~hittable() = default;
 
-        virtual bool hit(const ray& ray, double ray_tmin, double ray_tmax, hit_record& hit_record) const = 0;
+        virtual bool hit(const ray& ray, interval ray_t, hit_record& hit_record) const = 0;
 };
 
 #endif // RAYTRACINGINONEWEEKEND_HITTABLE_H
