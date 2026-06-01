@@ -11,4 +11,5 @@ add_executable(RayTracingInOneWeekend main.cpp
         sphere.h
         rtweekend.h
         hittable_list.h
-        interval.h)
+        interval.h
+        camera.h)
