@@ -27,6 +27,12 @@ public:
         return min < x && x < max;
     }
 
+    double clamp(double x) const {
+        if (x < min) return min;
+        if (x > max) return max;
+        return x;
+    }
+
     static const interval empty, universe;
 };
 // so you can't initialize these within the class because when it makes the class, it doesn't know how much memory to

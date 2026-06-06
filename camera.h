@@ -13,6 +13,7 @@ class camera {
 public:
     double aspect_ratio = 1.0;
     int image_width = 100;
+    int samples_per_pixel = 10;  // Count of random samples for each pixel
 
     void render(const hittable& world) {
         initialize();
@@ -24,15 +25,14 @@ public:
                 std::clog << "\r\nScanlines remaining: " << (image_height - y) << '\n' << std::flush;
             }
             for (int x = 0; x < image_width; x++) {
-                auto pixel_center = pixel00_loc + (x * pixel_delta_u) + (y * pixel_delta_v);  // the delta u/v is the distance between pixels
-                auto ray_direction = pixel_center - camera_center;
-
-                // So here at this point, imagine we have a camera that's shooting laters from our eyes over each pixel.
-                // that's what this ray is doing.
-                ray r(camera_center, ray_direction);
-
-                color pixel_color = ray_color(r, world);
-                write_color(std::cout, pixel_color);
+                color pixel_color(0, 0, 0);
+                for (int sample = 0; sample < samples_per_pixel; sample++) {
+                    ray r = get_ray(x, y);  // returns random ray in a unit square area around the original ray
+                    pixel_color += ray_color(r, world);  // adds that ray's color to the pixel color
+                }
+                // remember that pixel color is a "color" but it's really just a vec3 under the hood, and the pixel
+                // colors don't get clamped until we call write_color.
+                write_color(std::cout, pixel_samples_scale * pixel_color);
             }
         }
         std::clog << "\rDone.                 \n";
@@ -40,6 +40,7 @@ public:
 
 private:
     int image_height;
+    double pixel_samples_scale; // Color scale factor for a sum of pixel samples. How much each sample is weighted in a weighted sum
     point3 camera_center; // camera center
     point3 pixel00_loc; // location of pixel 0,0
     vec3 pixel_delta_u; // Offset to pixel to the right
@@ -49,6 +50,8 @@ private:
     void initialize() {
         image_height = int(image_width / aspect_ratio);
         image_height = (image_height < 1) ? 1 : image_height;  // < 1 check
+
+        pixel_samples_scale = 1.0 / samples_per_pixel;
 
         camera_center = point3(0, 0, 0);  // a.k.a. the "eye point"
 
@@ -69,6 +72,24 @@ private:
         const auto viewport_upper_left = camera_center - vec3(0, 0, focal_length) - viewport_u / 2 - viewport_v / 2;
         pixel00_loc = viewport_upper_left + .5 * (pixel_delta_u + pixel_delta_v);
 
+    }
+
+    ray get_ray(int x, int y)  const {
+        // Construct a camera ray from the origin directed at randomly sampled point around pixel location x, y
+
+        auto offset = sample_square();
+        auto pixel_sample = pixel00_loc
+                                + ((x + offset.x()) * pixel_delta_u)
+                                + ((y + offset.y()) * pixel_delta_v);
+        auto ray_origin = camera_center;
+        auto ray_direction = pixel_sample - ray_origin;
+
+        return ray(ray_origin, ray_direction);
+    }
+
+    vec3 sample_square() const {
+        // Returns the vector to a random point in the [-.5, -.5 ] - [+.5, +.5] unit square.
+        return vec3(random_double() - 0.5, random_double() - 0.5, 0);
     }
 
     // remember that the const at the end makes it a const function, meaning it's an error to write to its members
