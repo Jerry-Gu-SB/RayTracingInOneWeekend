@@ -93,14 +93,15 @@ private:
     }
 
     // remember that the const at the end makes it a const function, meaning it's an error to write to its members
-    color ray_color(const ray& ray, const hittable& world) {
+    color ray_color(const ray& r, const hittable& world) {
         hit_record rec;
 
-        if (world.hit(ray, interval(0, infinity), rec)) {
-            return .5 * (rec.normal + color(1, 1, 1));
+        if (world.hit(r, interval(0, infinity), rec)) {
+            vec3 direction = random_on_hemisphere(rec.normal);
+            return .5 * ray_color(ray(rec.point, direction), world);
         }
 
-        const vec3 unit_direction = unit_vector(ray.direction());
+        const vec3 unit_direction = unit_vector(r.direction());
         const auto a = .5 * (unit_direction.y() + 1.0);
         return (1.0 - a) * color(1.0, 1.0, 1.0) + a * color(0.5, 0.7, 1.0);
     }

@@ -46,6 +46,14 @@ class vec3 {
     double length_squared() const {
         return e[0]*e[0] + e[1]*e[1] + e[2]*e[2];
     }
+
+    static vec3 random() {
+        return vec3(random_double(), random_double(), random_double());
+    }
+
+    static vec3 random(float min, float max) {
+        return vec3(random_double(min, max), random_double(min, max), random_double(min, max));
+    }
 };
 
 // point3 is just an alias for vec3, but useful for geometric clarity in the code.
@@ -53,6 +61,10 @@ using point3 = vec3;
 
 
 // Vector Utility Functions
+// INLINE FUNCTIONS: So making a function call doesn't come for free, and there is some overhead from moving memory
+// around. So for frequently used functions like these, when it compiles, it instead just "copies and pastes" the
+// code directly into where the function is called, thereby eliminating the overhead from getting the memory address
+// NOTE: This is only useful when the function code overhead is higher than the actual code execution time.
 
 inline std::ostream& operator<<(std::ostream& out, const vec3& v) {
     return out << v.e[0] << ' ' << v.e[1] << ' ' << v.e[2];
@@ -96,6 +108,24 @@ inline vec3 cross(const vec3& u, const vec3& v) {
 
 inline vec3 unit_vector(const vec3& v) {
     return v / v.length();
+}
+
+inline vec3 random_unit_vector() {
+    while (true) {
+        auto p = vec3::random(-1 ,1);
+        auto length_squared = p.length_squared();
+        if (1e-160 < length_squared && length_squared <= 1)
+            return p / sqrt(length_squared);
+    }
+}
+
+inline vec3 random_on_hemisphere(const vec3& normal) {
+    vec3 on_unit_sphere = random_unit_vector();
+    if (dot(on_unit_sphere, normal) > 0.0) {  // Means it's pointing outside
+        return on_unit_sphere;
+    } else {
+        return -on_unit_sphere;
+    }
 }
 
 #endif // RAYTRACINGINONEWEEKEND_VEC3_H
