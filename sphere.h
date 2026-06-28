@@ -12,7 +12,9 @@ class sphere: public hittable {
         // so this syntax is just initializing the private variables immediately upon creation
         // you can see that the {} at the end just signify and empty constructor, since we've done all we need to do
         // already in the initialization
-        sphere(const point3& center, double radius) : center(center), radius(std::fmax(0, radius)){}
+        sphere(const point3& center, double radius) : center(center), radius(std::fmax(0, radius)) {
+            // TODO: Initialize material pointer `mat`.
+        }
 
         bool hit(const ray& ray, interval ray_t, hit_record& hit_record) const override {
             vec3 C_MINUS_Q = center - ray.origin();
@@ -44,12 +46,14 @@ class sphere: public hittable {
             // magnitude from root to center will always be radius, so divide to get unit vector
             vec3 outward_normal = (hit_record.point - center) / radius;
             hit_record.set_face_normal(ray, outward_normal);
+            hit_record.mat;
 
             return true;
         }
     private:
         point3 center;
         double radius;
+        shared_ptr<material> mat;
 };
 
 #endif // RAYTRACINGINONEWEEKEND_SPHERE_H

@@ -11,6 +11,7 @@ class material {
 public:
     virtual ~material() = default;
 
+    // attenuation is how much the wave gradually loses energy
     virtual bool scatter(
         const ray& r_in, const hit_record& rec, color& attenuation, ray& scattered
     ) const {

@@ -5,10 +5,16 @@
 #ifndef RAYTRACINGINONEWEEKEND_HITTABLE_H
 #define RAYTRACINGINONEWEEKEND_HITTABLE_H
 
+// So we've actually imported hittable.h into material, but we're also referencing it creating a circular reference.
+// Therefore, we need to add this line below to tell the compiler we'll define the material class later, solving the
+// circular reference.
+class material;
+
 class hit_record {
     public:
         point3 point;
         vec3 normal;
+        shared_ptr<material> mat;
         double t;
         bool outward_face;
 
