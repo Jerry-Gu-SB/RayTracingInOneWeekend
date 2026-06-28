@@ -134,4 +134,9 @@ inline vec3 random_on_hemisphere(const vec3& normal) {
     }
 }
 
+// This is would take awhile to explain, but just read chapter 10.4, it makes complete sense when you see it.
+inline vec3 reflect(const vec3& v, const vec3& n) {
+    return v - 2 * dot(v, n) * n;
+}
+
 #endif // RAYTRACINGINONEWEEKEND_VEC3_H

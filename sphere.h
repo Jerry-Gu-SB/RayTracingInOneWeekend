@@ -12,9 +12,8 @@ class sphere: public hittable {
         // so this syntax is just initializing the private variables immediately upon creation
         // you can see that the {} at the end just signify and empty constructor, since we've done all we need to do
         // already in the initialization
-        sphere(const point3& center, double radius) : center(center), radius(std::fmax(0, radius)) {
-            // TODO: Initialize material pointer `mat`.
-        }
+        sphere(const point3& center, double radius, shared_ptr<material> mat)
+            : center(center), radius(std::fmax(0, radius)), mat(mat) {}
 
         bool hit(const ray& ray, interval ray_t, hit_record& hit_record) const override {
             vec3 C_MINUS_Q = center - ray.origin();

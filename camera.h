@@ -8,6 +8,7 @@
 #include "color.h"
 #include "hittable.h"
 #include "ray.h"
+#include "material.h"
 
 class camera {
 public:
@@ -94,22 +95,22 @@ private:
     }
 
     // remember that the const at the end makes it a const function, meaning it's an error to write to its members
-    color ray_color(const ray& r, const int depth, const hittable& world, const std::string& diffuse_renderer = "lambertian") {
+    color ray_color(const ray& r, const int depth, const hittable& world) {
         if (depth <= 0) {
             return color(0, 0, 0);
         }
-        hit_record rec;
 
+        hit_record rec;
         if (world.hit(r, interval(0.001, infinity), rec)) {
-            vec3 direction;
-            if (diffuse_renderer == "lambertian") {
-                direction = rec.normal + random_unit_vector();
-            } else if (diffuse_renderer == "hemisphere") {
-                direction = random_on_hemisphere(rec.normal);
-            } else {
-                direction = rec.normal + random_unit_vector(); // default to lambertian
-            }
-            return .5 * ray_color(ray(rec.point, direction), depth - 1, world);
+            ray scattered;
+            color attenuation;
+            // So the record will come from whatever the ray has hit in the world. We'll then get the scattered ray
+            // by asking what we've hit's material what the attenuation and ray scatter we got. Then we pipe that ray
+            // into the ray color to get the direction, and the attenuation is the % multiplier how much falloff there
+            // is for that ray's intensity. If for whatever reason the material isn't initialized, fallback to black.
+            if (rec.mat->scatter(r, rec, attenuation, scattered))
+                return attenuation * ray_color(scattered, depth - 1, world);
+            return color(0, 0, 0);
         }
 
         const vec3 unit_direction = unit_vector(r.direction());
