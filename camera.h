@@ -94,14 +94,21 @@ private:
     }
 
     // remember that the const at the end makes it a const function, meaning it's an error to write to its members
-    color ray_color(const ray& r, const int depth, const hittable& world) {
+    color ray_color(const ray& r, const int depth, const hittable& world, const std::string& diffuse_renderer = "lambertian") {
         if (depth <= 0) {
             return color(0, 0, 0);
         }
         hit_record rec;
 
         if (world.hit(r, interval(0.001, infinity), rec)) {
-            vec3 direction = random_on_hemisphere(rec.normal);
+            vec3 direction;
+            if (diffuse_renderer == "lambertian") {
+                direction = rec.normal + random_unit_vector();
+            } else if (diffuse_renderer == "hemisphere") {
+                direction = random_on_hemisphere(rec.normal);
+            } else {
+                direction = rec.normal + random_unit_vector(); // default to lambertian
+            }
             return .5 * ray_color(ray(rec.point, direction), depth - 1, world);
         }
 
