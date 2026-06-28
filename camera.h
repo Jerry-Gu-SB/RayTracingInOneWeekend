@@ -14,6 +14,7 @@ public:
     double aspect_ratio = 1.0;
     int image_width = 100;
     int samples_per_pixel = 10;  // Count of random samples for each pixel
+    int max_depth = 10; // max number of ray bounces in a scene
 
     void render(const hittable& world) {
         initialize();
@@ -28,7 +29,7 @@ public:
                 color pixel_color(0, 0, 0);
                 for (int sample = 0; sample < samples_per_pixel; sample++) {
                     ray r = get_ray(x, y);  // returns random ray in a unit square area around the original ray
-                    pixel_color += ray_color(r, world);  // adds that ray's color to the pixel color
+                    pixel_color += ray_color(r, max_depth, world);  // adds that ray's color to the pixel color
                 }
                 // remember that pixel color is a "color" but it's really just a vec3 under the hood, and the pixel
                 // colors don't get clamped until we call write_color.
@@ -93,12 +94,16 @@ private:
     }
 
     // remember that the const at the end makes it a const function, meaning it's an error to write to its members
-    color ray_color(const ray& r, const hittable& world) {
+    color ray_color(const ray& r, const int depth, const hittable& world) {
         hit_record rec;
+
+        if (depth <= 0) {
+            return color(0, 0, 0);
+        }
 
         if (world.hit(r, interval(0, infinity), rec)) {
             vec3 direction = random_on_hemisphere(rec.normal);
-            return .5 * ray_color(ray(rec.point, direction), world);
+            return .5 * ray_color(ray(rec.point, direction), depth - 1, world);
         }
 
         const vec3 unit_direction = unit_vector(r.direction());
