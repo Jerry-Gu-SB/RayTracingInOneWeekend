@@ -1,4 +1,4 @@
-﻿## !/bin/bash
+﻿## First time, RufFr or the first time, run: ## !/bin/bash
 FILE="image.ppm"
 
 if [ -f "$FILE" ]; then

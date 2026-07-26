@@ -63,4 +63,32 @@ private:
     double fuzz;
 };
 
+class dielectric : public material {
+public:
+    dielectric(double refraction_index) : refraction_index(refraction_index) {}
+
+    bool scatter(const ray& r_in, const hit_record& rec, color& attenuation, ray& scattered)
+
+    const override {
+        attenuation = color(1.0, 1.0, 1.0);
+
+        // if we're inside the material or outside the material. If we're inside the material, the ratio flips as
+        // Snell's goes like start_eta/end_eta, so we need to flip inverse depending on where we're coming from
+        double this_refraction_index = rec.outward_face ? (1.0 / refraction_index) : refraction_index;
+
+        vec3 unit_direction = unit_vector(r_in.direction());
+        vec3 refracted = refract(unit_direction, rec.normal, this_refraction_index);
+
+        scattered = ray(rec.point, refracted);
+
+        return true;
+    }
+
+private:
+    // It's either the refractive index of the material in a vacuum, or the ratio of the material's index over the
+    // surrounding media's refractive index
+    double refraction_index;
+};
+
+
 #endif // RAYTRACINGINONEWEEKEND_MATERIAL_H
