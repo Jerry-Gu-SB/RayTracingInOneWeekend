@@ -1,4 +1,4 @@
-﻿#!/bin/bash
+﻿## !/bin/bash
 FILE="image.ppm"
 
 if [ -f "$FILE" ]; then
