@@ -84,7 +84,7 @@ public:
         bool cannot_refract = this_refraction_index * sin_theta > 1.0;
         vec3 direction;
 
-        if (cannot_refract)
+        if (cannot_refract || reflectance(cos_theta, refraction_index) > random_double())
         {
             direction = reflect(unit_direction, rec.normal);
         } else
@@ -100,6 +100,15 @@ private:
     // It's either the refractive index of the material in a vacuum, or the ratio of the material's index over the
     // surrounding media's refractive index
     double refraction_index;
+
+    static double reflectance(double cosine, double refraction_index)
+    {
+        // Schlick's approximation
+        auto r0 = (1 - refraction_index) / (1 + refraction_index);
+        r0 = r0 * r0;
+        return r0 + (1 - r0) * std::pow((1 - cosine), 5);
+    }
+
 };
 
 
