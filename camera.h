@@ -23,6 +23,9 @@ public:
     point3 lookat = point3(0, 0, -1); // the point that we're looking at
     vec3 vup = vec3(0, 1, 0); // camera-relative "up" direction. note that this can be whatever we want
 
+    double defocus_angle = 0; // variation on the angle of rays through each pixel
+    double focus_distance = 10; // distance from camera lookfrom to the plane of perfect focus
+
     void render(const hittable& world) {
         initialize();
 
@@ -57,6 +60,9 @@ private:
     vec3 u, v, w;       // These are the 3 vectors that determine our camera roll and angle
                         // u = camera right, v = camera up, w = camera opposite view direction (right hand rule), and camera center is at the origin
 
+    vec3 defocus_disk_u; // defocus disk horizontal radius
+    vec3 defocus_disk_v; // defocus disk vertical radius
+
     void initialize() {
         image_height = int(image_width / aspect_ratio);
         image_height = (image_height < 1) ? 1 : image_height;  // < 1 check
@@ -66,10 +72,9 @@ private:
         camera_center = lookfrom;
 
         // determien viewport dimensions
-        const auto focal_length = (lookfrom - lookat).length();  // distance between camera center, and the 2d plane of the viewport
         auto theta = degrees_to_radians(vfov);
         auto h = std::tan(theta / 2.0);
-        auto viewport_height = 2 * h * focal_length;
+        auto viewport_height = 2 * h * focus_distance;
         const auto viewport_width = viewport_height * (double(image_width)/image_height);
 
         // u, v, w unit vectors
@@ -86,19 +91,23 @@ private:
         pixel_delta_v = viewport_v / image_height;
 
         // Calculate location of upper left pixel. This is to help us with convention and to help us start from top left
-        const auto viewport_upper_left = camera_center - (focal_length * w) - viewport_u / 2 - viewport_v / 2;
+        const auto viewport_upper_left = camera_center - (focus_distance * w) - viewport_u / 2 - viewport_v / 2;
         pixel00_loc = viewport_upper_left + .5 * (pixel_delta_u + pixel_delta_v);
 
+        // Calculate camera defocus disk basis fectors
+        auto defocus_radius = focus_distance * std::tan(degrees_to_radians(defocus_angle / 2));
+        defocus_disk_u = u * defocus_radius;
+        defocus_disk_v = v * defocus_radius;
     }
 
     ray get_ray(int x, int y)  const {
-        // Construct a camera ray from the origin directed at randomly sampled point around pixel location x, y
+        // construct a camera ray originating from the defocus disk to a random point sampled around the pixel x, y
 
         auto offset = sample_square();
         auto pixel_sample = pixel00_loc
                                 + ((x + offset.x()) * pixel_delta_u)
                                 + ((y + offset.y()) * pixel_delta_v);
-        auto ray_origin = camera_center;
+        auto ray_origin = (defocus_angle < 0) ? camera_center : defocus_disk_sample();
         auto ray_direction = pixel_sample - ray_origin;
 
         return ray(ray_origin, ray_direction);
@@ -107,6 +116,13 @@ private:
     vec3 sample_square() const {
         // Returns the vector to a random point in the [-.5, -.5 ] - [+.5, +.5] unit square.
         return vec3(random_double() - 0.5, random_double() - 0.5, 0);
+    }
+
+    point3 defocus_disk_sample() const
+    {
+        // return random point in camera defocus disk
+        auto p = random_in_unit_disk();
+        return camera_center + (p[0] * defocus_disk_u, p[1] * defocus_disk_v);
     }
 
     // remember that the const at the end makes it a const function, meaning it's an error to write to its members
