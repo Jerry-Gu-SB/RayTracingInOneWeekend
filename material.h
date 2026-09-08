@@ -84,12 +84,12 @@ public:
         bool cannot_refract = this_refraction_index * sin_theta > 1.0;
         vec3 direction;
 
-        if (cannot_refract || reflectance(cos_theta, refraction_index) > random_double())
+        if (cannot_refract || reflectance(cos_theta, this_refraction_index) > random_double())
         {
             direction = reflect(unit_direction, rec.normal);
         } else
         {
-            direction = refract(unit_direction, rec.normal, refraction_index);
+            direction = refract(unit_direction, rec.normal, this_refraction_index);
         }
         scattered = ray(rec.point, direction);
 
